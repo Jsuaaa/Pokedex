@@ -17,16 +17,17 @@ export function App(total: number): {
   const searchBar = SearchBar();
   const { root: typeFiltersRoot, updateTypes } = TypeFilters();
   const { root: gridRoot, addCreature, updateCreature } = Grid();
-  const footer = Footer(total);
+  const { root: footerRoot, updateLoaded } = Footer(total);
 
   const controls = el('div', { class: 'controls' }, [searchBar, typeFiltersRoot]);
   shellRoot.appendChild(controls);
 
-  const app = el('div', { class: 'app' }, [shellRoot, gridRoot, footer]);
+  const app = el('div', { class: 'app' }, [shellRoot, gridRoot, footerRoot]);
 
   subscribe((state) => {
     const f = getFiltered();
-    updateCounter(f.length, state.creatures.length);
+    updateCounter(f.length, total);
+    updateLoaded(state.creatures.length);
 
     const allTypes = Array.from(
       new Set(state.creatures.flatMap((c) => c.types)),

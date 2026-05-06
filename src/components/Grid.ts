@@ -24,7 +24,7 @@ export function Grid(): { root: HTMLElement; addCreature: (c: Creature, idx: num
   }
 
   subscribe((state) => {
-    const { focusedId, creatures, query, activeType } = state;
+    const { focusedId, creatures, query, activeType, total } = state;
 
     const q = query.toLowerCase();
     const filtered = creatures.filter((c) => {
@@ -53,13 +53,20 @@ export function Grid(): { root: HTMLElement; addCreature: (c: Creature, idx: num
 
     let emptyEl = grid.querySelector('.empty') as HTMLElement | null;
     if (visibleCount === 0 && cardMap.size > 0) {
+      const subMsg =
+        creatures.length < total
+          ? 'Scroll to load more entries'
+          : 'Try a different search or type filter.';
       if (!emptyEl) {
         emptyEl = el('div', { class: 'empty' }, [
           el('div', { class: 'empty-icon' }, ['∅']),
           el('div', { class: 'empty-msg' }, ['NO ENTRIES FOUND']),
-          el('div', { class: 'empty-sub' }, ['Try a different search or type filter.']),
+          el('div', { class: 'empty-sub' }, [subMsg]),
         ]);
         grid.appendChild(emptyEl);
+      } else {
+        const sub = emptyEl.querySelector('.empty-sub');
+        if (sub) sub.textContent = subMsg;
       }
     } else if (emptyEl) {
       emptyEl.remove();

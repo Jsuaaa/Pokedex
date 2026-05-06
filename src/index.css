@@ -482,8 +482,8 @@ body::before {
 .card-sprite {
   position: relative;
   z-index: 1;
-  width: 96px;
-  height: 96px;
+  width: 144px;
+  height: 144px;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   filter: drop-shadow(3px 3px 0 rgba(15,56,15,0.5));
@@ -595,7 +595,7 @@ body::before {
 }
 .stat-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--type-bg) 0%, var(--type-glow) 100%);
+  background: linear-gradient(90deg, var(--lcd-green-dark) 0%, var(--lcd-green) 100%);
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
   transition: width 0.6s cubic-bezier(.2,.9,.3,1.2);
 }
@@ -735,6 +735,31 @@ body::before {
   display: inline-block;
   box-shadow: 0 0 8px var(--lcd-green);
   animation: ledPulse 1.2s infinite;
+}
+
+/* ============================================
+   INFINITE SCROLL SENTINEL
+   ============================================ */
+.grid-sentinel {
+  min-height: 80px;
+  padding: 24px;
+  margin-top: 24px;
+  text-align: center;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: 1px;
+}
+.grid-sentinel--loading::after {
+  content: "▸ LOADING...";
+  animation: hintBlink 1s ease-in-out infinite;
+}
+.grid-sentinel--error {
+  color: var(--frame-red);
+  cursor: pointer;
+}
+.grid-sentinel--error::after {
+  content: "▸ FAILED — TAP TO RETRY";
 }
 
 /* ============================================

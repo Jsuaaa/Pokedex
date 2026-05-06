@@ -21,7 +21,7 @@ export function CardFront(creature: Creature): HTMLElement {
   ]);
 
   const portraitBg = el('div', { class: 'card-portrait-bg' });
-  const sprite = el('img', { class: 'card-sprite' });
+  const sprite = el('img', { class: 'card-sprite', loading: 'lazy', decoding: 'async' });
   (sprite as HTMLImageElement).src = creature.sprite;
   (sprite as HTMLImageElement).alt = creature.name;
   const portraitFrame = el('div', { class: 'card-portrait-frame' });

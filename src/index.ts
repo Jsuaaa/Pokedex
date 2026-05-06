@@ -4,33 +4,133 @@ import { getPokemonById } from './queries/GetPokemonById';
 import { getPokemonSpecies } from './queries/GetPokemonSpecies';
 import { getEvolutionChain } from './queries/GetEvolutionChain';
 import { pLimit } from './lib/concurrency';
+import { parseIdFromUrl } from './lib/parseId';
 import { mapPokemonTier1, applyTier2 } from './lib/mapPokemon';
 import { setState, getState, subscribe } from './state/store';
 import { App } from './components/App';
-import { POKEMON_LIMIT, FETCH_CONCURRENCY } from './config/constants';
+import { BATCH_SIZE, FETCH_CONCURRENCY, OBSERVER_ROOT_MARGIN } from './config/constants';
 import type { Creature } from './types/Creature';
+import type { PokemonList } from './types/PokemonList';
 
 const root = document.querySelector('#root')!;
-const { root: appEl, addCreature, updateCreature } = App(POKEMON_LIMIT);
+
+// Fetch first page before mounting so we know the real total
+const firstList = await getPokemonsList(BATCH_SIZE, 0);
+const total = firstList.count;
+setState({ total });
+
+const { root: appEl, addCreature, updateCreature } = App(total);
 root.appendChild(appEl);
 
-const allCreatures: Creature[] = [];
+// Process a list page: fetch details in parallel, add cards to DOM, return creatures
+async function processBatch(list: PokemonList): Promise<Creature[]> {
+  const batchCreatures: Creature[] = [];
 
-const list = await getPokemonsList(POKEMON_LIMIT, 0);
+  const tasks = list.results.map((r, i) => async () => {
+    let id: number;
+    try {
+      id = parseIdFromUrl(r.url);
+    } catch {
+      return;
+    }
+    try {
+      const pokemon = await getPokemonById(id);
+      const creature = mapPokemonTier1(pokemon);
+      // batch-local idx so animation-delay stays within 0..BATCH_SIZE*0.07s
+      addCreature(creature, i);
+      batchCreatures.push(creature);
+    } catch {
+      // skip individual failures silently
+    }
+  });
 
-const tasks = list.results.map((_, i) => async () => {
-  const id = i + 1;
-  const pokemon = await getPokemonById(id);
-  const creature = mapPokemonTier1(pokemon);
-  allCreatures[i] = creature;
-  addCreature(creature, i);
-  return creature;
-});
+  await pLimit(tasks, FETCH_CONCURRENCY);
+  return batchCreatures;
+}
 
-await pLimit(tasks, FETCH_CONCURRENCY);
+// Load and commit the first batch (reusing already-fetched firstList)
+const firstBatch = await processBatch(firstList);
+setState({ creatures: [...getState().creatures, ...firstBatch], loading: false });
 
-setState({ creatures: allCreatures, loading: false });
+let offset = firstList.results.length;
 
+// Infinite scroll machinery
+let inFlight = false;
+let sentinel: HTMLElement | null = null;
+let observer: IntersectionObserver | null = null;
+
+function getSentinel(): HTMLElement {
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.className = 'grid-sentinel';
+  }
+  return sentinel;
+}
+
+function setSentinelState(s: 'idle' | 'loading' | 'error') {
+  const el = getSentinel();
+  el.className = s === 'idle' ? 'grid-sentinel' : `grid-sentinel grid-sentinel--${s}`;
+}
+
+function teardownSentinel() {
+  if (observer) { observer.disconnect(); observer = null; }
+  if (sentinel && sentinel.parentNode) sentinel.remove();
+  sentinel = null;
+}
+
+async function loadNextBatch() {
+  if (inFlight) return;
+  if (offset >= total) return;
+  inFlight = true;
+  setSentinelState('loading');
+  try {
+    const list = await getPokemonsList(BATCH_SIZE, offset);
+    const batch = await processBatch(list);
+    setState({ creatures: [...getState().creatures, ...batch] });
+    offset += list.results.length;
+    if (offset >= total) {
+      teardownSentinel();
+    } else {
+      setSentinelState('idle');
+    }
+  } catch {
+    setSentinelState('error');
+  } finally {
+    inFlight = false;
+  }
+}
+
+function setupSentinel() {
+  if (offset >= total) return;
+
+  const grid = appEl.querySelector('.grid');
+  if (!grid || !grid.parentNode) return;
+
+  const el = getSentinel();
+  el.addEventListener('click', () => {
+    if (el.classList.contains('grid-sentinel--error')) {
+      loadNextBatch();
+    }
+  });
+
+  // Sibling of .grid (not child): new cards get appendChild'd into .grid,
+  // so a child sentinel would get sandwiched between batches. As a sibling,
+  // it always stays at the end of the scrollable content.
+  grid.parentNode.insertBefore(el, grid.nextSibling);
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) loadNextBatch();
+    },
+    { rootMargin: OBSERVER_ROOT_MARGIN },
+  );
+  observer.observe(el);
+}
+
+// Mount sentinel after first batch is committed
+setupSentinel();
+
+// Tier-2: species + evolution chain on focus (unchanged)
 const speciesCache = new Map<
   number,
   {

@@ -6,6 +6,7 @@ export interface AppState {
   activeType: string;
   focusedId: number | null;
   loading: boolean;
+  total: number;
 }
 
 type Listener = (state: AppState) => void;
@@ -16,6 +17,7 @@ const state: AppState = {
   activeType: 'ALL',
   focusedId: null,
   loading: true,
+  total: 0,
 };
 
 const listeners = new Set<Listener>();
