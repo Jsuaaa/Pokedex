@@ -20,6 +20,10 @@ export default defineConfig({
         type: 'asset',
       },
       {
+        test: /\.(mp3|ogg)$/,
+        type: 'asset/resource',
+      },
+      {
         test: /\.(?:js|mjs|cjs|ts|mts|cts)$/,
         use: [
           {

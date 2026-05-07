@@ -7,8 +7,13 @@ interface PokemonType {
   type: { name: string };
 }
 
+interface PokemonOtherSprites {
+  'official-artwork'?: { front_default: string | null };
+}
+
 interface PokemonSprites {
   front_default: string | null;
+  other?: PokemonOtherSprites;
 }
 
 export interface Pokemon {

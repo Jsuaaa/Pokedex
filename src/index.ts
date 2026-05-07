@@ -8,11 +8,23 @@ import { parseIdFromUrl } from './lib/parseId';
 import { mapPokemonTier1, applyTier2 } from './lib/mapPokemon';
 import { setState, getState, subscribe } from './state/store';
 import { App } from './components/App';
+import { StartOverlay } from './components/StartOverlay';
+import { MuteToggle } from './components/MuteToggle';
+import { playMusic, setMusicMuted } from './lib/audio';
+import musicUrl from './assets/red-theme.mp3';
 import { BATCH_SIZE, FETCH_CONCURRENCY, OBSERVER_ROOT_MARGIN } from './config/constants';
 import type { Creature } from './types/Creature';
 import type { PokemonList } from './types/PokemonList';
 
 const root = document.querySelector('#root')!;
+
+// Mount PRESS START overlay synchronously before the first await,
+// so the user sees it while the initial fetch is in flight.
+const start = StartOverlay({
+  onStart: () => playMusic(musicUrl, { volume: 0.3, loop: true }),
+  onSkip: () => setMusicMuted(true),
+});
+document.body.appendChild(start.root);
 
 // Fetch first page before mounting so we know the real total
 const firstList = await getPokemonsList(BATCH_SIZE, 0);
@@ -21,6 +33,7 @@ setState({ total });
 
 const { root: appEl, addCreature, updateCreature } = App(total);
 root.appendChild(appEl);
+document.body.appendChild(MuteToggle().root);
 
 // Process a list page: fetch details in parallel, add cards to DOM, return creatures
 async function processBatch(list: PokemonList): Promise<Creature[]> {

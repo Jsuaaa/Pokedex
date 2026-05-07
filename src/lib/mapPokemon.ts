@@ -45,8 +45,9 @@ export function mapPokemonTier1(pokemon: Pokemon): Creature {
     def: getStat(pokemon, 'defense'),
     spd: getStat(pokemon, 'speed'),
     sprite:
+      pokemon.sprites.other?.['official-artwork']?.front_default ??
       pokemon.sprites.front_default ??
-      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`,
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`,
     lore: '...',
     habitat: '...',
     region: '...',
