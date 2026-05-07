@@ -15,21 +15,27 @@ export function StartOverlay({ onStart, onSkip }: StartOverlayParams): {
   const sub = el('div', { class: 'start-overlay-sub' }, [
     'CLICK ANYWHERE TO BEGIN',
   ]);
-  const skipBtn = el(
-    'button',
-    {
-      class: 'start-overlay-skip',
-      type: 'button',
-      on: {
-        click: (e) => {
-          e.stopPropagation();
-          if (onSkip) onSkip();
-          dismiss();
+
+  const overlayChildren: (HTMLElement | string)[] = [title, sub];
+  if (onSkip) {
+    const skip = onSkip;
+    const skipBtn = el(
+      'button',
+      {
+        class: 'start-overlay-skip',
+        type: 'button',
+        on: {
+          click: (e) => {
+            e.stopPropagation();
+            skip();
+            dismiss();
+          },
         },
       },
-    },
-    ['CONTINUE WITHOUT MUSIC'],
-  );
+      ['CONTINUE WITHOUT MUSIC'],
+    );
+    overlayChildren.push(skipBtn);
+  }
 
   const root = el(
     'div',
@@ -45,7 +51,7 @@ export function StartOverlay({ onStart, onSkip }: StartOverlayParams): {
         },
       },
     },
-    [title, sub, skipBtn],
+    overlayChildren,
   );
 
   const keyHandler = (e: KeyboardEvent) => {

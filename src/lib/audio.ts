@@ -64,12 +64,17 @@ const musicState: MusicState = {
   listeners: new Set(),
 };
 
+export function isMusicEnabled(): boolean {
+  return process.env.NODE_ENV !== 'production';
+}
+
 export interface PlayMusicOptions {
   volume?: number;
   loop?: boolean;
 }
 
 export function playMusic(url: string, opts: PlayMusicOptions = {}): void {
+  if (!isMusicEnabled()) return;
   const { volume = 0.3, loop = true } = opts;
   musicState.baseVolume = volume;
   musicState.url = url;

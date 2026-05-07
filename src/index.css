@@ -294,9 +294,8 @@ body::before {
    GRID
    ============================================ */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 32px 24px;
+  position: relative;
+  width: 100%;
 }
 
 .grid--has-focus .card-wrap:not(.card-wrap--focused) {
@@ -321,11 +320,13 @@ body::before {
    CARD
    ============================================ */
 .card-wrap {
-  position: relative;
-  aspect-ratio: 5 / 7;
+  position: absolute;
   transform-style: preserve-3d;
   perspective: 1200px;
   transition: opacity 0.3s, filter 0.3s;
+}
+
+.card-wrap--enter {
   animation: cardEnter 0.7s cubic-bezier(.2,.9,.3,1.2) backwards;
 }
 
@@ -488,6 +489,9 @@ body::before {
   max-height: 220px;
   filter: drop-shadow(3px 3px 0 rgba(15,56,15,0.5));
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .card-wrap--focused .card-sprite {
@@ -704,7 +708,6 @@ body::before {
    EMPTY + FOOTER
    ============================================ */
 .empty {
-  grid-column: 1 / -1;
   text-align: center;
   padding: 80px 24px;
   color: var(--ink-dim);
@@ -887,4 +890,36 @@ body::before {
 }
 @media (max-width: 760px) {
   .mute-toggle { right: 12px; bottom: 12px; padding: 8px 10px; }
+}
+
+/* ============================================
+   COPYRIGHT BANNER
+   ============================================ */
+.copyright-banner {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 140;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 10px 14px;
+  color: var(--ink-soft);
+  background: var(--bg-mid);
+  border: 3px solid #0a0d18;
+  box-shadow:
+    inset 2px 2px 0 rgba(255,255,255,0.05),
+    inset -2px -2px 0 rgba(0,0,0,0.3),
+    0 3px 0 #0a0d18;
+  pointer-events: none;
+  max-width: 340px;
+}
+@media (max-width: 760px) {
+  .copyright-banner {
+    left: 12px;
+    bottom: 12px;
+    padding: 8px 10px;
+    font-size: 7px;
+    max-width: calc(100vw - 24px);
+  }
 }
