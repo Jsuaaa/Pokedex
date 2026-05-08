@@ -58,6 +58,7 @@ export function StartOverlay({ onStart, onSkip }: StartOverlayParams): {
   const prevHtmlOverflow = document.documentElement.style.overflow;
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
+  document.body.classList.add('overlay-active');
 
   const keyHandler = (e: KeyboardEvent) => {
     if (dismissed) return;
@@ -75,6 +76,7 @@ export function StartOverlay({ onStart, onSkip }: StartOverlayParams): {
     window.removeEventListener('keydown', keyHandler);
     document.body.style.overflow = prevBodyOverflow;
     document.documentElement.style.overflow = prevHtmlOverflow;
+    document.body.classList.remove('overlay-active');
     root.classList.add('start-overlay--leaving');
     setTimeout(() => {
       if (root.parentNode) root.parentNode.removeChild(root);
