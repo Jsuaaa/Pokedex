@@ -421,12 +421,12 @@ body::before {
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
   animation: cardIdle 5s ease-in-out infinite;
 }
 
 .card-wrap--focused .card-3d {
   animation: none;
+  touch-action: none;
 }
 .card-wrap--focused {
   position: fixed;
@@ -471,14 +471,16 @@ body::before {
   cursor: grabbing;
 }
 
-.card-wrap:not(.card-wrap--focused):hover .card-3d {
-  animation-play-state: paused;
-  transform: rotateX(-8deg) rotateY(8deg) translateZ(20px);
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
+@media (hover: hover) and (pointer: fine) {
+  .card-wrap:not(.card-wrap--focused):hover .card-3d {
+    animation-play-state: paused;
+    transform: rotateX(-8deg) rotateY(8deg) translateZ(20px);
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
 
-.card-3d:hover .foil {
-  opacity: 0.7;
+  .card-3d:hover .foil {
+    opacity: 0.7;
+  }
 }
 
 /* ============================================
@@ -986,7 +988,11 @@ body::before {
   justify-content: center;
   gap: 18px;
   cursor: pointer;
-  height: 100lvh;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
   animation: fadeIn 0.4s ease-out;
 }
 .start-overlay::after {

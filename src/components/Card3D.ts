@@ -109,30 +109,23 @@ export function Card3D(
     hintEl.textContent = text;
   }
 
-  card3d.addEventListener('pointerdown', (e: PointerEvent) => {
-    if (!isFocused()) return;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    stopInertia();
-    Object.assign(dragState, {
-      active: true,
-      lastX: e.clientX,
-      lastY: e.clientY,
-      startX: e.clientX,
-      startY: e.clientY,
-      moved: false,
-      vx: 0,
-      vy: 0,
-    });
-    wrap.classList.add('card-wrap--dragging');
-  });
-
-  card3d.addEventListener('pointermove', (e: PointerEvent) => {
+  function updateFoil(clientX: number, clientY: number) {
     const rect = card3d.getBoundingClientRect();
-    const foilX = ((e.clientX - rect.left) / rect.width) * 100;
-    const foilY = ((e.clientY - rect.top) / rect.height) * 100;
+    if (
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom
+    ) {
+      return;
+    }
+    const foilX = ((clientX - rect.left) / rect.width) * 100;
+    const foilY = ((clientY - rect.top) / rect.height) * 100;
     wrap.style.setProperty('--foil-x', foilX + '%');
     wrap.style.setProperty('--foil-y', foilY + '%');
+  }
 
+  const onWindowPointerMove = (e: PointerEvent) => {
     if (!dragState.active) return;
     const dx = e.clientX - dragState.lastX;
     const dy = e.clientY - dragState.lastY;
@@ -152,17 +145,43 @@ export function Card3D(
     rot.y = rot.y + dx * 0.5;
     applyTransform();
     updateHint();
-  });
+    updateFoil(e.clientX, e.clientY);
+  };
 
-  const endDrag = () => {
+  const onWindowPointerUp = () => {
     if (!dragState.active) return;
     dragState.active = false;
     wrap.classList.remove('card-wrap--dragging');
+    window.removeEventListener('pointermove', onWindowPointerMove);
+    window.removeEventListener('pointerup', onWindowPointerUp);
+    window.removeEventListener('pointercancel', onWindowPointerUp);
     startInertia();
   };
 
-  card3d.addEventListener('pointerup', endDrag);
-  card3d.addEventListener('pointercancel', endDrag);
+  card3d.addEventListener('pointerdown', (e: PointerEvent) => {
+    if (!isFocused()) return;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    stopInertia();
+    Object.assign(dragState, {
+      active: true,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+      vx: 0,
+      vy: 0,
+    });
+    wrap.classList.add('card-wrap--dragging');
+    window.addEventListener('pointermove', onWindowPointerMove);
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerUp);
+  });
+
+  card3d.addEventListener('pointermove', (e: PointerEvent) => {
+    if (dragState.active) return;
+    updateFoil(e.clientX, e.clientY);
+  });
 
   card3d.addEventListener('click', (e: MouseEvent) => {
     if (dragState.moved) {
