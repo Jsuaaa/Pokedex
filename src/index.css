@@ -437,6 +437,8 @@ body::before {
   margin: 0;
   transform: translate(-50%, -50%);
   z-index: 20;
+  touch-action: none;
+  overscroll-behavior: contain;
   animation: focusPop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
@@ -472,13 +474,13 @@ body::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .card-wrap:not(.card-wrap--focused):hover .card-3d {
+  body:not(.is-touch) .card-wrap:not(.card-wrap--focused):hover .card-3d {
     animation-play-state: paused;
     transform: rotateX(-8deg) rotateY(8deg) translateZ(20px);
     transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
   }
 
-  .card-3d:hover .foil {
+  body:not(.is-touch) .card-3d:hover .foil {
     opacity: 0.7;
   }
 }
