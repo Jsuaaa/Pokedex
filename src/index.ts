@@ -19,12 +19,6 @@ import type { PokemonList } from './types/PokemonList';
 
 const root = document.querySelector('#root')!;
 
-window.addEventListener(
-  'touchstart',
-  () => document.body.classList.add('is-touch'),
-  { once: true, passive: true },
-);
-
 // Mount PRESS START overlay synchronously before the first await,
 // so the user sees it while the initial fetch is in flight.
 const start = StartOverlay({

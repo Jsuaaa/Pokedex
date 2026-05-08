@@ -160,7 +160,6 @@ export function Card3D(
 
   card3d.addEventListener('pointerdown', (e: PointerEvent) => {
     if (!isFocused()) return;
-    e.preventDefault();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     stopInertia();
     Object.assign(dragState, {
