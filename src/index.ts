@@ -156,6 +156,57 @@ const speciesCache = new Map<
   }
 >();
 
+let lockedScrollY = 0;
+let prevBodyStyles: {
+  overflow: string;
+  position: string;
+  top: string;
+  left: string;
+  right: string;
+  width: string;
+} | null = null;
+
+function lockBodyScroll() {
+  if (prevBodyStyles) return;
+  lockedScrollY = window.scrollY;
+  const body = document.body;
+  prevBodyStyles = {
+    overflow: body.style.overflow,
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    width: body.style.width,
+  };
+  body.style.overflow = 'hidden';
+  body.style.position = 'fixed';
+  body.style.top = `-${lockedScrollY}px`;
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+}
+
+function unlockBodyScroll() {
+  if (!prevBodyStyles) return;
+  const body = document.body;
+  body.style.overflow = prevBodyStyles.overflow;
+  body.style.position = prevBodyStyles.position;
+  body.style.top = prevBodyStyles.top;
+  body.style.left = prevBodyStyles.left;
+  body.style.right = prevBodyStyles.right;
+  body.style.width = prevBodyStyles.width;
+  prevBodyStyles = null;
+  window.scrollTo(0, lockedScrollY);
+}
+
+let lastFocusedId: number | null = null;
+subscribe((state) => {
+  if (state.focusedId === lastFocusedId) return;
+  lastFocusedId = state.focusedId;
+  if (state.focusedId !== null) lockBodyScroll();
+  else unlockBodyScroll();
+});
+
 subscribe(async (state) => {
   const id = state.focusedId;
   if (id === null) return;
